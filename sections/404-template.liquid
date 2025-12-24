@@ -1,0 +1,30 @@
+<div class="error-page">
+  <h1>404</h1>
+  <p>Page not found</p>
+  <a href="/" class="btn btn-primary">Return to Shop</a>
+</div>
+
+<style>
+.error-page {
+  text-align: center;
+  padding: 4rem var(--spacing);
+}
+.error-page h1 {
+  font-size: 6rem;
+  font-weight: 300;
+  margin: 0 0 1rem;
+  color: var(--color-text-muted);
+}
+.error-page p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  color: var(--color-text-muted);
+}
+</style>
+
+{% schema %}
+{
+  "name": "404 Page",
+  "settings": []
+}
+{% endschema %}

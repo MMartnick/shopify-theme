@@ -1,0 +1,104 @@
+<header class="site-header">
+  <div class="header-inner">
+    <!-- Logo / Site Title -->
+    <a href="/" class="site-title">
+      {%- if settings.logo != blank -%}
+        <img src="{{ settings.logo | image_url: width: 200 }}" alt="{{ shop.name }}" class="site-logo">
+      {%- else -%}
+        {{ shop.name }}
+        <span class="site-subtitle">shop</span>
+      {%- endif -%}
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="site-nav desktop-nav">
+      <a href="https://matthewmartnick.com/about" class="nav-link">about</a>
+      <a href="https://matthewmartnick.com/artwork" class="nav-link">artwork</a>
+      <a href="https://ko-fi.com/doom_monsta/commissions" class="nav-link" target="_blank" rel="noopener">commissions</a>
+      <a href="/" class="nav-link {% if template == 'index' %}active{% endif %}">shop</a>
+      <a href="https://matthewmartnick.com/contact" class="nav-link">contact</a>
+    </nav>
+
+    <!-- Right side: social + cart -->
+    <div class="header-right">
+      <div class="social-links">
+        <a href="https://instagram.com/doom_monsta" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.artstation.com/doom_monsta" target="_blank" rel="noopener noreferrer" aria-label="ArtStation">
+          <i class="fab fa-artstation"></i>
+        </a>
+        <a href="https://www.behance.net/mattMartnick" target="_blank" rel="noopener noreferrer" aria-label="Behance">
+          <i class="fab fa-behance"></i>
+        </a>
+      </div>
+
+      <!-- Cart button -->
+      <button class="cart-toggle" aria-label="Open cart" data-cart-toggle>
+        <i class="fas fa-shopping-bag"></i>
+        <span class="cart-count{% if cart.item_count == 0 %} hidden{% endif %}">{{ cart.item_count }}</span>
+      </button>
+
+      <!-- Mobile menu button -->
+      <button class="mobile-menu-toggle" aria-label="Open menu" data-menu-toggle>
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-nav-drawer" data-menu-drawer>
+    <div class="mobile-nav-header">
+      <span>Menu</span>
+      <button class="mobile-nav-close" aria-label="Close menu" data-menu-close>
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <nav class="mobile-nav">
+      <a href="https://matthewmartnick.com/about" class="nav-link">about</a>
+      <a href="https://matthewmartnick.com/artwork" class="nav-link">artwork</a>
+      <a href="https://ko-fi.com/doom_monsta/commissions" class="nav-link">commissions</a>
+      <a href="/" class="nav-link">shop</a>
+      <a href="https://matthewmartnick.com/contact" class="nav-link">contact</a>
+    </nav>
+    <div class="mobile-nav-social">
+      <a href="https://instagram.com/doom_monsta" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+      <a href="https://www.artstation.com/doom_monsta" target="_blank" rel="noopener noreferrer"><i class="fab fa-artstation"></i></a>
+      <a href="https://www.behance.net/mattMartnick" target="_blank" rel="noopener noreferrer"><i class="fab fa-behance"></i></a>
+    </div>
+  </div>
+  <div class="drawer-overlay" data-drawer-overlay></div>
+</header>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Mobile menu toggle
+  const menuToggle = document.querySelector('[data-menu-toggle]');
+  const menuDrawer = document.querySelector('[data-menu-drawer]');
+  const menuClose = document.querySelector('[data-menu-close]');
+  const overlay = document.querySelector('[data-drawer-overlay]');
+
+  function openMenu() {
+    menuDrawer.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    menuDrawer.classList.remove('open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (menuToggle) menuToggle.addEventListener('click', openMenu);
+  if (menuClose) menuClose.addEventListener('click', closeMenu);
+  if (overlay) overlay.addEventListener('click', closeMenu);
+});
+</script>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": []
+}
+{% endschema %}

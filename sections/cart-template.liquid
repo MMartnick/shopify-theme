@@ -1,0 +1,65 @@
+<div class="cart-page">
+  <h1 class="page-title">Your Cart</h1>
+
+  {%- if cart.item_count > 0 -%}
+    <form action="/cart" method="post" class="cart-form">
+      <div class="cart-items">
+        {%- for item in cart.items -%}
+          <div class="cart-item">
+            <a href="{{ item.url }}" class="cart-item-image">
+              {%- if item.image -%}
+                <img src="{{ item.image | image_url: width: 150 }}" alt="{{ item.title | escape }}" loading="lazy">
+              {%- endif -%}
+            </a>
+            <div class="cart-item-details">
+              <a href="{{ item.url }}" class="cart-item-title">{{ item.product.title }}</a>
+              {%- unless item.variant.title == 'Default Title' -%}
+                <p class="cart-item-variant">{{ item.variant.title }}</p>
+              {%- endunless -%}
+              <p class="cart-item-price">{{ item.final_price | money }}</p>
+            </div>
+            <div class="cart-item-quantity">
+              <label for="qty-{{ item.key }}" class="visually-hidden">Quantity</label>
+              <div class="quantity-selector">
+                <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); this.form.submit();">−</button>
+                <input type="number" name="updates[]" id="qty-{{ item.key }}" value="{{ item.quantity }}" min="0">
+                <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); this.form.submit();">+</button>
+              </div>
+            </div>
+            <div class="cart-item-total">
+              {{ item.final_line_price | money }}
+            </div>
+            <a href="/cart/change?line={{ forloop.index }}&quantity=0" class="cart-item-remove" aria-label="Remove {{ item.title }}">
+              <i class="fas fa-trash-alt"></i>
+            </a>
+          </div>
+        {%- endfor -%}
+      </div>
+
+      <div class="cart-footer">
+        <div class="cart-subtotal">
+          <span>Subtotal</span>
+          <span>{{ cart.total_price | money }}</span>
+        </div>
+        <p class="cart-note">Shipping and taxes calculated at checkout</p>
+        <div class="cart-actions">
+          <button type="submit" name="update" class="btn btn-secondary">Update Cart</button>
+          <button type="submit" name="checkout" class="btn btn-primary">Checkout</button>
+        </div>
+      </div>
+    </form>
+  {%- else -%}
+    <div class="cart-empty">
+      <i class="fas fa-shopping-bag"></i>
+      <p>Your cart is empty</p>
+      <a href="/collections/all" class="btn btn-primary">Continue Shopping</a>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Cart Page",
+  "settings": []
+}
+{% endschema %}
