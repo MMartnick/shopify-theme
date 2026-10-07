@@ -1,12 +1,15 @@
 {%- comment -%}
-  Store header: Concept 1984 mark + "Store" tag, navigation from the chosen
-  menu (falls back to Shop / Artists / Studio), studio Instagram, cart.
+  Store header: Concept 1984 mark + "Store" tag, store links, links back to
+  concept1984.com, studio Instagram, cart. The navigation is fixed in the
+  theme (not read from a Shopify admin menu) so it only ever points to the
+  store and the studio site.
 {%- endcomment -%}
-{%- assign menu = linklists[section.settings.menu] -%}
-{%- capture default_nav -%}
-  <a href="{{ routes.all_products_collection_url }}" class="nav-link{% if request.page_type == 'collection' and collection.handle == 'all' %} active{% endif %}">Shop</a>
+{%- capture nav_links -%}
+  <a href="{{ routes.all_products_collection_url }}" class="nav-link{% if request.page_type == 'collection' %} active{% endif %}">Shop</a>
   <a href="{{ routes.root_url }}#artists" class="nav-link">Artists</a>
-  <a href="{{ section.settings.studio_url }}" class="nav-link">Studio</a>
+  <a href="https://concept1984.com/work" class="nav-link">Work</a>
+  <a href="https://concept1984.com/about" class="nav-link">About</a>
+  <a href="https://concept1984.com" class="nav-link">Studio</a>
 {%- endcapture -%}
 
 <header class="site-header">
@@ -22,13 +25,7 @@
     </a>
 
     <nav class="site-nav desktop-nav" aria-label="Main">
-      {%- if menu.links.size > 0 -%}
-        {%- for link in menu.links -%}
-          <a href="{{ link.url }}" class="nav-link{% if link.active %} active{% endif %}">{{ link.title }}</a>
-        {%- endfor -%}
-      {%- else -%}
-        {{ default_nav }}
-      {%- endif -%}
+      {{ nav_links }}
     </nav>
 
     <div class="header-right">
@@ -57,13 +54,7 @@
       </button>
     </div>
     <nav class="mobile-nav" aria-label="Mobile">
-      {%- if menu.links.size > 0 -%}
-        {%- for link in menu.links -%}
-          <a href="{{ link.url }}" class="nav-link">{{ link.title }}</a>
-        {%- endfor -%}
-      {%- else -%}
-        {{ default_nav }}
-      {%- endif -%}
+      {{ nav_links }}
     </nav>
     {%- if settings.social_instagram != blank -%}
       <div class="mobile-nav-social">
@@ -98,20 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
 {% schema %}
 {
   "name": "Header",
-  "settings": [
-    {
-      "type": "link_list",
-      "id": "menu",
-      "label": "Menu",
-      "default": "main-menu",
-      "info": "Leave the menu empty to use Shop / Artists / Studio."
-    },
-    {
-      "type": "url",
-      "id": "studio_url",
-      "label": "Studio link",
-      "default": "https://concept1984.com"
-    }
-  ]
+  "settings": []
 }
 {% endschema %}

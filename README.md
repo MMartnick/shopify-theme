@@ -49,8 +49,8 @@ live counts from the store; Vendor is labelled "Artist" and Product type
 section for each artist (pick their collection, optional portrait, discipline
 and bio). With no blocks, the section lists every vendor automatically.
 
-**Navigation.** The header uses the `main-menu` menu; leave it empty to get
-Shop / Artists / Studio. Studio Instagram is set under *Theme settings →
+**Navigation.** The header links are built into the theme (Shop, Artists, and
+Work / About / Studio on concept1984.com); it ignores Shopify admin menus. Studio Instagram is set under *Theme settings →
 Social media* (default `@concept_1984`).
 
 ## Development
