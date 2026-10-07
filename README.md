@@ -18,6 +18,9 @@ sections/
   product-template.liquid      variant picker, add to cart (opens drawer)
   cart-drawer.liquid           AJAX cart (window.Cart.open / refresh)
   cart-template.liquid         /cart page
+  search-template.liquid       /search results
+  list-collections-template    /collections index
+  password-template.liquid     "Opening soon" page (layout/password.liquid)
   page-template.liquid, 404-template.liquid
 snippets/
   product-card.liquid          card with artist + product type

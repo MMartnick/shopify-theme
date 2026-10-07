@@ -35,10 +35,10 @@
         </a>
       {%- endif -%}
 
-      <button type="button" class="cart-toggle" aria-label="Open cart" data-cart-toggle>
+      <a href="{{ routes.cart_url }}" class="cart-toggle" aria-label="Cart ({{ cart.item_count }})" data-cart-toggle>
         {% render 'icon', name: 'bag' %}
         <span class="cart-count{% if cart.item_count == 0 %} hidden{% endif %}" data-cart-count>{{ cart.item_count }}</span>
-      </button>
+      </a>
 
       <button type="button" class="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false" data-menu-toggle>
         {% render 'icon', name: 'menu' %}

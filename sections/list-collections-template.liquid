@@ -1,0 +1,37 @@
+{%- comment -%} /collections — every collection, including artist collections. {%- endcomment -%}
+<div class="collection-page">
+  <header class="collection-header">
+    <div class="collection-heading">
+      <p class="kicker">Store</p>
+      <h1 class="collection-title">Collections</h1>
+    </div>
+  </header>
+
+  <div class="artist-grid">
+    {%- for c in collections -%}
+      {%- if c.products_count > 0 -%}
+        {%- assign cover = c.image | default: c.products.first.featured_image -%}
+        <a href="{{ c.url }}" class="artist-card">
+          <div class="artist-card-image">
+            {%- if cover -%}
+              <img src="{{ cover | image_url: width: 600 }}" alt="{{ cover.alt | default: c.title | escape }}" loading="lazy" width="600" height="{{ 600 | divided_by: cover.aspect_ratio | round }}">
+            {%- else -%}
+              {% render 'icon', name: 'image' %}
+            {%- endif -%}
+          </div>
+          <div class="artist-card-info">
+            <h2 class="artist-card-name">{{ c.title }}</h2>
+            <p class="artist-card-count">{{ c.products_count }} {{ c.products_count | pluralize: 'product', 'products' }}</p>
+          </div>
+        </a>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Collections list",
+  "settings": []
+}
+{% endschema %}

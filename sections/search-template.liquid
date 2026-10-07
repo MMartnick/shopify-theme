@@ -1,0 +1,68 @@
+{%- paginate search.results by 24 -%}
+<div class="collection-page search-page">
+  <header class="collection-header">
+    <div class="collection-heading">
+      <p class="kicker">Search</p>
+      <h1 class="collection-title">
+        {%- if search.performed -%}“{{ search.terms | escape }}”{%- else -%}Search the store{%- endif -%}
+      </h1>
+      <form action="{{ routes.search_url }}" method="get" role="search" class="search-form">
+        <label for="search-q" class="visually-hidden">Search</label>
+        <input type="search" id="search-q" name="q" value="{{ search.terms | escape }}" placeholder="Artist, title, product type…">
+        <input type="hidden" name="options[prefix]" value="last">
+        <button type="submit" class="btn btn-primary">Search</button>
+      </form>
+    </div>
+  </header>
+
+  {%- if search.performed -%}
+    <p class="results-count">{{ search.results_count }} {{ search.results_count | pluralize: 'result', 'results' }}</p>
+
+    {%- if search.results_count > 0 -%}
+      <div class="product-grid search-results">
+        {%- for item in search.results -%}
+          {%- if item.object_type == 'product' -%}
+            {% render 'product-card', product: item %}
+          {%- else -%}
+            <article class="search-result-text">
+              <p class="kicker">{% if item.object_type == 'article' %}Journal{% else %}Page{% endif %}</p>
+              <h3 class="product-card-title"><a href="{{ item.url }}">{{ item.title }}</a></h3>
+              <p>{{ item.content | strip_html | truncatewords: 24 }}</p>
+            </article>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.pages > 1 -%}
+        <nav class="pagination" aria-label="Pagination">
+          {%- if paginate.previous -%}
+            <a href="{{ paginate.previous.url }}" class="pagination-link prev">{% render 'icon', name: 'arrow-left' %} Previous</a>
+          {%- endif -%}
+          {%- for part in paginate.parts -%}
+            {%- if part.is_link -%}
+              <a href="{{ part.url }}" class="pagination-link">{{ part.title }}</a>
+            {%- else -%}
+              <span class="pagination-link{% if part.title == paginate.current_page %} current{% endif %}">{{ part.title }}</span>
+            {%- endif -%}
+          {%- endfor -%}
+          {%- if paginate.next -%}
+            <a href="{{ paginate.next.url }}" class="pagination-link next">Next {% render 'icon', name: 'arrow-right' %}</a>
+          {%- endif -%}
+        </nav>
+      {%- endif -%}
+    {%- else -%}
+      <div class="collection-empty">
+        <p>Nothing matched that search.</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn btn-secondary">Browse all products</a>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "Search results",
+  "settings": []
+}
+{% endschema %}

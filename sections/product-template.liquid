@@ -20,6 +20,7 @@
             alt="{{ main_image.alt | default: product.title | escape }}"
             width="1400" height="{{ 1400 | divided_by: main_image.aspect_ratio | round }}"
             id="product-main-img"
+            fetchpriority="high"
           >
         {%- else -%}
           <div class="product-card-placeholder">{% render 'icon', name: 'image' %}</div>
@@ -61,7 +62,7 @@
         <span class="price-current{% if current_variant.compare_at_price > current_variant.price %} on-sale{% endif %}">{{ current_variant.price | money }}</span>
       </div>
 
-      {%- form 'product', product, id: 'product-form', class: 'product-form', data-product-form: '' -%}
+      {%- form 'product', product, id: 'product-form', class: 'product-form' -%}
         <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
 
         {%- unless product.has_only_default_variant -%}
@@ -127,7 +128,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  var form = document.querySelector('[data-product-form]');
+  var form = document.getElementById('product-form');
   if (!form) return;
   var data = JSON.parse(document.querySelector('[data-product-json]').textContent);
   var idInput = form.querySelector('[data-variant-id]');
