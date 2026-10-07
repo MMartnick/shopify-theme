@@ -1,88 +1,146 @@
-<div class="cart-drawer" data-cart-drawer>
-  <div class="cart-drawer-header">
-    <h2>Cart</h2>
-    <button class="cart-drawer-close" aria-label="Close cart" data-cart-close>
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
+{%- comment -%}
+  Slide-out cart. Contents are re-rendered through the Section Rendering API
+  (/?sections=cart-drawer) after every change, so Liquid stays the single
+  source of truth. Other code opens/refreshes it via window.Cart.
+{%- endcomment -%}
+<div class="cart-drawer" data-cart-drawer role="dialog" aria-modal="true" aria-label="Cart" aria-hidden="true">
+  <div data-cart-drawer-inner>
+    <div class="cart-drawer-header">
+      <h2>Cart{% if cart.item_count > 0 %} <span class="cart-drawer-count">{{ cart.item_count }}</span>{% endif %}</h2>
+      <button type="button" class="cart-drawer-close" aria-label="Close cart" data-cart-close>
+        {% render 'icon', name: 'close' %}
+      </button>
+    </div>
 
-  <div class="cart-drawer-content">
-    {%- if cart.item_count > 0 -%}
-      <div class="cart-items">
-        {%- for item in cart.items -%}
-          <div class="cart-item" data-line="{{ forloop.index }}">
-            <a href="{{ item.url }}" class="cart-item-image">
-              {%- if item.image -%}
-                <img src="{{ item.image | image_url: width: 100 }}" alt="{{ item.title | escape }}" loading="lazy">
-              {%- endif -%}
-            </a>
-            <div class="cart-item-details">
-              <a href="{{ item.url }}" class="cart-item-title">{{ item.product.title }}</a>
-              {%- unless item.variant.title == 'Default Title' -%}
-                <p class="cart-item-variant">{{ item.variant.title }}</p>
-              {%- endunless -%}
-              <p class="cart-item-price">{{ item.final_line_price | money }}</p>
-              <div class="cart-item-quantity">
-                <button class="qty-btn" data-qty-minus aria-label="Decrease quantity">−</button>
-                <span class="qty-value">{{ item.quantity }}</span>
-                <button class="qty-btn" data-qty-plus aria-label="Increase quantity">+</button>
+    <div class="cart-drawer-content" data-cart-item-count="{{ cart.item_count }}">
+      {%- if cart.item_count > 0 -%}
+        <ul class="cart-items">
+          {%- for item in cart.items -%}
+            <li class="cart-item">
+              <a href="{{ item.url }}" class="cart-item-image">
+                {%- if item.image -%}
+                  <img src="{{ item.image | image_url: width: 160 }}" alt="{{ item.title | escape }}" loading="lazy" width="80" height="{{ 80 | divided_by: item.image.aspect_ratio | round }}">
+                {%- endif -%}
+              </a>
+              <div class="cart-item-details">
+                {%- if item.vendor != blank -%}<p class="cart-item-artist">{{ item.vendor }}</p>{%- endif -%}
+                <a href="{{ item.url }}" class="cart-item-title">{{ item.product.title }}</a>
+                {%- unless item.product.has_only_default_variant -%}
+                  <p class="cart-item-variant">{{ item.variant.title }}</p>
+                {%- endunless -%}
+                <div class="cart-item-row">
+                  <div class="quantity-selector quantity-selector--small">
+                    <button type="button" class="qty-btn" data-cart-line="{{ forloop.index }}" data-cart-qty="{{ item.quantity | minus: 1 }}" aria-label="Decrease quantity">−</button>
+                    <span class="qty-value" aria-label="Quantity">{{ item.quantity }}</span>
+                    <button type="button" class="qty-btn" data-cart-line="{{ forloop.index }}" data-cart-qty="{{ item.quantity | plus: 1 }}" aria-label="Increase quantity">+</button>
+                  </div>
+                  <p class="cart-item-price">{{ item.final_line_price | money }}</p>
+                </div>
               </div>
-            </div>
-            <button class="cart-item-remove" data-remove-item aria-label="Remove item">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </div>
-        {%- endfor -%}
-      </div>
+              <button type="button" class="cart-item-remove" data-cart-line="{{ forloop.index }}" data-cart-qty="0" aria-label="Remove {{ item.product.title | escape }}">
+                {% render 'icon', name: 'remove' %}
+              </button>
+            </li>
+          {%- endfor -%}
+        </ul>
 
-      <div class="cart-drawer-footer">
-        <div class="cart-subtotal">
-          <span>Subtotal</span>
-          <span>{{ cart.total_price | money }}</span>
+        <div class="cart-drawer-footer">
+          <div class="cart-subtotal">
+            <span>Subtotal</span>
+            <span>{{ cart.total_price | money }}</span>
+          </div>
+          <p class="cart-note">Shipping and taxes calculated at checkout.</p>
+          <form action="{{ routes.cart_url }}" method="post">
+            <button type="submit" name="checkout" class="btn btn-primary btn-block">Checkout</button>
+          </form>
+          <a href="{{ routes.cart_url }}" class="btn btn-secondary btn-block">View cart</a>
         </div>
-        <p class="cart-note">Shipping and taxes calculated at checkout</p>
-        <a href="/checkout" class="btn btn-primary cart-checkout">Checkout</a>
-        <a href="/cart" class="btn btn-secondary">View Cart</a>
-      </div>
-    {%- else -%}
-      <div class="cart-empty">
-        <i class="fas fa-shopping-bag"></i>
-        <p>Your cart is empty</p>
-        <a href="/collections/all" class="btn btn-primary">Continue Shopping</a>
-      </div>
-    {%- endif -%}
+      {%- else -%}
+        <div class="cart-empty">
+          {% render 'icon', name: 'bag' %}
+          <p>Your cart is empty.</p>
+          <a href="{{ routes.all_products_collection_url }}" class="btn btn-primary">Browse the store</a>
+        </div>
+      {%- endif -%}
+    </div>
   </div>
 </div>
 <div class="cart-overlay" data-cart-overlay></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const cartToggle = document.querySelector('[data-cart-toggle]');
-  const cartDrawer = document.querySelector('[data-cart-drawer]');
-  const cartClose = document.querySelector('[data-cart-close]');
-  const cartOverlay = document.querySelector('[data-cart-overlay]');
+(function () {
+  var drawer = document.querySelector('[data-cart-drawer]');
+  var overlay = document.querySelector('[data-cart-overlay]');
+  if (!drawer) return;
 
-  function openCart() {
-    cartDrawer.classList.add('open');
-    cartOverlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
+  function setOpen(open) {
+    drawer.classList.toggle('open', open);
+    overlay.classList.toggle('open', open);
+    drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) {
+      var close = drawer.querySelector('[data-cart-close]');
+      if (close) close.focus();
+    }
   }
 
-  function closeCart() {
-    cartDrawer.classList.remove('open');
-    cartOverlay.classList.remove('open');
-    document.body.style.overflow = '';
+  function updateCount(count) {
+    document.querySelectorAll('[data-cart-count]').forEach(function (el) {
+      el.textContent = count;
+      el.classList.toggle('hidden', count === 0);
+    });
   }
 
-  if (cartToggle) cartToggle.addEventListener('click', openCart);
-  if (cartClose) cartClose.addEventListener('click', closeCart);
-  if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
-});
+  // Re-render the drawer from Liquid.
+  function refresh() {
+    var root = {{ routes.root_url | json }};
+    return fetch(root.replace(/\/?$/, '/') + '?sections=cart-drawer')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var doc = new DOMParser().parseFromString(data['cart-drawer'], 'text/html');
+        var fresh = doc.querySelector('[data-cart-drawer-inner]');
+        var current = drawer.querySelector('[data-cart-drawer-inner]');
+        if (fresh && current) current.innerHTML = fresh.innerHTML;
+        var content = drawer.querySelector('[data-cart-item-count]');
+        if (content) updateCount(parseInt(content.getAttribute('data-cart-item-count'), 10) || 0);
+      });
+  }
+
+  function change(line, quantity) {
+    drawer.classList.add('is-loading');
+    return fetch('{{ routes.cart_change_url }}.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ line: line, quantity: quantity })
+    })
+      .then(refresh)
+      .finally(function () { drawer.classList.remove('is-loading'); });
+  }
+
+  window.Cart = {
+    open: function () { setOpen(true); },
+    close: function () { setOpen(false); },
+    refresh: refresh,
+    updateCount: updateCount
+  };
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-cart-toggle]')) { e.preventDefault(); setOpen(true); return; }
+    if (e.target.closest('[data-cart-close]') || e.target === overlay) { setOpen(false); return; }
+    var btn = e.target.closest('[data-cart-line]');
+    if (btn && drawer.contains(btn)) {
+      change(parseInt(btn.getAttribute('data-cart-line'), 10), parseInt(btn.getAttribute('data-cart-qty'), 10));
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) setOpen(false);
+  });
+})();
 </script>
 
 {% schema %}
 {
-  "name": "Cart Drawer",
+  "name": "Cart drawer",
   "settings": []
 }
 {% endschema %}

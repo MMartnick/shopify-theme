@@ -1,0 +1,17 @@
+{%- comment -%}
+  The artist is the product's vendor. Links to the artist's own collection
+  (same handle as the vendor name, e.g. vendor "Jane Doe" ->
+  /collections/jane-doe) when it exists, otherwise to Shopify's
+  automatic vendor listing.
+  Usage: {% render 'artist-link', vendor: product.vendor, class: 'product-artist' %}
+{%- endcomment -%}
+{%- if vendor != blank -%}
+  {%- assign artist_handle = vendor | handleize -%}
+  {%- assign artist_collection = collections[artist_handle] -%}
+  {%- if artist_collection != blank -%}
+    {%- assign artist_url = artist_collection.url -%}
+  {%- else -%}
+    {%- assign artist_url = vendor | url_for_vendor -%}
+  {%- endif -%}
+  <a href="{{ artist_url }}" class="{{ class | default: 'artist-link' }}">{{ vendor }}</a>
+{%- endif -%}

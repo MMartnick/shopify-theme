@@ -1,65 +1,65 @@
 <div class="cart-page">
-  <h1 class="page-title">Your Cart</h1>
+  <p class="kicker">Store</p>
+  <h1 class="page-title">Cart</h1>
 
   {%- if cart.item_count > 0 -%}
-    <form action="/cart" method="post" class="cart-form">
-      <div class="cart-items">
+    <form action="{{ routes.cart_url }}" method="post" class="cart-form">
+      <ul class="cart-items cart-items--page">
         {%- for item in cart.items -%}
-          <div class="cart-item">
+          <li class="cart-item">
             <a href="{{ item.url }}" class="cart-item-image">
               {%- if item.image -%}
-                <img src="{{ item.image | image_url: width: 150 }}" alt="{{ item.title | escape }}" loading="lazy">
+                <img src="{{ item.image | image_url: width: 240 }}" alt="{{ item.title | escape }}" loading="lazy" width="120" height="{{ 120 | divided_by: item.image.aspect_ratio | round }}">
               {%- endif -%}
             </a>
             <div class="cart-item-details">
+              {%- if item.vendor != blank -%}<p class="cart-item-artist">{% render 'artist-link', vendor: item.vendor %}</p>{%- endif -%}
               <a href="{{ item.url }}" class="cart-item-title">{{ item.product.title }}</a>
-              {%- unless item.variant.title == 'Default Title' -%}
+              {%- unless item.product.has_only_default_variant -%}
                 <p class="cart-item-variant">{{ item.variant.title }}</p>
               {%- endunless -%}
-              <p class="cart-item-price">{{ item.final_price | money }}</p>
+              <p class="cart-item-unit">{{ item.final_price | money }}</p>
             </div>
             <div class="cart-item-quantity">
-              <label for="qty-{{ item.key }}" class="visually-hidden">Quantity</label>
+              <label for="qty-{{ forloop.index }}" class="visually-hidden">Quantity for {{ item.product.title | escape }}</label>
               <div class="quantity-selector">
-                <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); this.form.submit();">−</button>
-                <input type="number" name="updates[]" id="qty-{{ item.key }}" value="{{ item.quantity }}" min="0">
-                <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); this.form.submit();">+</button>
+                <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); this.form.submit();" aria-label="Decrease quantity">−</button>
+                <input type="number" name="updates[]" id="qty-{{ forloop.index }}" value="{{ item.quantity }}" min="0">
+                <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); this.form.submit();" aria-label="Increase quantity">+</button>
               </div>
             </div>
-            <div class="cart-item-total">
-              {{ item.final_line_price | money }}
-            </div>
-            <a href="/cart/change?line={{ forloop.index }}&quantity=0" class="cart-item-remove" aria-label="Remove {{ item.title }}">
-              <i class="fas fa-trash-alt"></i>
+            <div class="cart-item-total">{{ item.final_line_price | money }}</div>
+            <a href="{{ item.url_to_remove }}" class="cart-item-remove" aria-label="Remove {{ item.product.title | escape }}">
+              {% render 'icon', name: 'remove' %}
             </a>
-          </div>
+          </li>
         {%- endfor -%}
-      </div>
+      </ul>
 
       <div class="cart-footer">
         <div class="cart-subtotal">
           <span>Subtotal</span>
           <span>{{ cart.total_price | money }}</span>
         </div>
-        <p class="cart-note">Shipping and taxes calculated at checkout</p>
+        <p class="cart-note">Shipping and taxes calculated at checkout.</p>
         <div class="cart-actions">
-          <button type="submit" name="update" class="btn btn-secondary">Update Cart</button>
+          <button type="submit" name="update" class="btn btn-secondary">Update cart</button>
           <button type="submit" name="checkout" class="btn btn-primary">Checkout</button>
         </div>
       </div>
     </form>
   {%- else -%}
     <div class="cart-empty">
-      <i class="fas fa-shopping-bag"></i>
-      <p>Your cart is empty</p>
-      <a href="/collections/all" class="btn btn-primary">Continue Shopping</a>
+      {% render 'icon', name: 'bag' %}
+      <p>Your cart is empty.</p>
+      <a href="{{ routes.all_products_collection_url }}" class="btn btn-primary">Browse the store</a>
     </div>
   {%- endif -%}
 </div>
 
 {% schema %}
 {
-  "name": "Cart Page",
+  "name": "Cart page",
   "settings": []
 }
 {% endschema %}

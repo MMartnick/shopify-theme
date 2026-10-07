@@ -1,104 +1,117 @@
+{%- comment -%}
+  Store header: Concept 1984 mark + "Store" tag, navigation from the chosen
+  menu (falls back to Shop / Artists / Studio), studio Instagram, cart.
+{%- endcomment -%}
+{%- assign menu = linklists[section.settings.menu] -%}
+{%- capture default_nav -%}
+  <a href="{{ routes.all_products_collection_url }}" class="nav-link{% if request.page_type == 'collection' and collection.handle == 'all' %} active{% endif %}">Shop</a>
+  <a href="{{ routes.root_url }}#artists" class="nav-link">Artists</a>
+  <a href="{{ section.settings.studio_url }}" class="nav-link">Studio</a>
+{%- endcapture -%}
+
 <header class="site-header">
   <div class="header-inner">
-    <!-- Logo / Site Title -->
-    <a href="/" class="site-title">
+    <a href="{{ routes.root_url }}" class="site-title" aria-label="{{ shop.name }} home">
       {%- if settings.logo != blank -%}
-        <img src="{{ settings.logo | image_url: width: 200 }}" alt="{{ shop.name }}" class="site-logo">
+        <img src="{{ settings.logo | image_url: width: 240 }}" alt="{{ shop.name }}" class="site-logo" width="120" height="40">
       {%- else -%}
-        {{ shop.name }}
-        <span class="site-subtitle">shop</span>
+        <img src="{{ 'concept1984-mark.svg' | asset_url }}" alt="" class="site-mark" width="55" height="40">
+        <span class="site-name">Concept 1984</span>
+        <span class="site-tag">Store</span>
       {%- endif -%}
     </a>
 
-    <!-- Desktop Navigation -->
-    <nav class="site-nav desktop-nav">
-      <a href="https://matthewmartnick.com/about" class="nav-link">about</a>
-      <a href="https://matthewmartnick.com/artwork" class="nav-link">artwork</a>
-      <a href="https://ko-fi.com/doom_monsta/commissions" class="nav-link" target="_blank" rel="noopener">commissions</a>
-      <a href="/" class="nav-link {% if template == 'index' %}active{% endif %}">shop</a>
-      <a href="https://matthewmartnick.com/contact" class="nav-link">contact</a>
+    <nav class="site-nav desktop-nav" aria-label="Main">
+      {%- if menu.links.size > 0 -%}
+        {%- for link in menu.links -%}
+          <a href="{{ link.url }}" class="nav-link{% if link.active %} active{% endif %}">{{ link.title }}</a>
+        {%- endfor -%}
+      {%- else -%}
+        {{ default_nav }}
+      {%- endif -%}
     </nav>
 
-    <!-- Right side: social + cart -->
     <div class="header-right">
-      <div class="social-links">
-        <a href="https://instagram.com/doom_monsta" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-          <i class="fab fa-instagram"></i>
+      {%- if settings.social_instagram != blank -%}
+        <a href="{{ settings.social_instagram }}" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Concept 1984 on Instagram">
+          {% render 'icon', name: 'instagram' %}
         </a>
-        <a href="https://www.artstation.com/doom_monsta" target="_blank" rel="noopener noreferrer" aria-label="ArtStation">
-          <i class="fab fa-artstation"></i>
-        </a>
-        <a href="https://www.behance.net/mattMartnick" target="_blank" rel="noopener noreferrer" aria-label="Behance">
-          <i class="fab fa-behance"></i>
-        </a>
-      </div>
+      {%- endif -%}
 
-      <!-- Cart button -->
-      <button class="cart-toggle" aria-label="Open cart" data-cart-toggle>
-        <i class="fas fa-shopping-bag"></i>
-        <span class="cart-count{% if cart.item_count == 0 %} hidden{% endif %}">{{ cart.item_count }}</span>
+      <button type="button" class="cart-toggle" aria-label="Open cart" data-cart-toggle>
+        {% render 'icon', name: 'bag' %}
+        <span class="cart-count{% if cart.item_count == 0 %} hidden{% endif %}" data-cart-count>{{ cart.item_count }}</span>
       </button>
 
-      <!-- Mobile menu button -->
-      <button class="mobile-menu-toggle" aria-label="Open menu" data-menu-toggle>
-        <i class="fas fa-bars"></i>
+      <button type="button" class="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false" data-menu-toggle>
+        {% render 'icon', name: 'menu' %}
       </button>
     </div>
   </div>
 
-  <!-- Mobile Navigation Drawer -->
-  <div class="mobile-nav-drawer" data-menu-drawer>
+  <div class="mobile-nav-drawer" data-menu-drawer aria-label="Menu">
     <div class="mobile-nav-header">
       <span>Menu</span>
-      <button class="mobile-nav-close" aria-label="Close menu" data-menu-close>
-        <i class="fas fa-times"></i>
+      <button type="button" class="mobile-nav-close" aria-label="Close menu" data-menu-close>
+        {% render 'icon', name: 'close' %}
       </button>
     </div>
-    <nav class="mobile-nav">
-      <a href="https://matthewmartnick.com/about" class="nav-link">about</a>
-      <a href="https://matthewmartnick.com/artwork" class="nav-link">artwork</a>
-      <a href="https://ko-fi.com/doom_monsta/commissions" class="nav-link">commissions</a>
-      <a href="/" class="nav-link">shop</a>
-      <a href="https://matthewmartnick.com/contact" class="nav-link">contact</a>
+    <nav class="mobile-nav" aria-label="Mobile">
+      {%- if menu.links.size > 0 -%}
+        {%- for link in menu.links -%}
+          <a href="{{ link.url }}" class="nav-link">{{ link.title }}</a>
+        {%- endfor -%}
+      {%- else -%}
+        {{ default_nav }}
+      {%- endif -%}
     </nav>
-    <div class="mobile-nav-social">
-      <a href="https://instagram.com/doom_monsta" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
-      <a href="https://www.artstation.com/doom_monsta" target="_blank" rel="noopener noreferrer"><i class="fab fa-artstation"></i></a>
-      <a href="https://www.behance.net/mattMartnick" target="_blank" rel="noopener noreferrer"><i class="fab fa-behance"></i></a>
-    </div>
+    {%- if settings.social_instagram != blank -%}
+      <div class="mobile-nav-social">
+        <a href="{{ settings.social_instagram }}" target="_blank" rel="noopener noreferrer" aria-label="Concept 1984 on Instagram">
+          {% render 'icon', name: 'instagram' %} <span>@concept_1984</span>
+        </a>
+      </div>
+    {%- endif -%}
   </div>
   <div class="drawer-overlay" data-drawer-overlay></div>
 </header>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Mobile menu toggle
-  const menuToggle = document.querySelector('[data-menu-toggle]');
-  const menuDrawer = document.querySelector('[data-menu-drawer]');
-  const menuClose = document.querySelector('[data-menu-close]');
-  const overlay = document.querySelector('[data-drawer-overlay]');
-
-  function openMenu() {
-    menuDrawer.classList.add('open');
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
+document.addEventListener('DOMContentLoaded', function () {
+  var toggle = document.querySelector('[data-menu-toggle]');
+  var drawer = document.querySelector('[data-menu-drawer]');
+  var close = document.querySelector('[data-menu-close]');
+  var overlay = document.querySelector('[data-drawer-overlay]');
+  function setOpen(open) {
+    drawer.classList.toggle('open', open);
+    overlay.classList.toggle('open', open);
+    if (toggle) toggle.setAttribute('aria-expanded', open);
+    document.body.style.overflow = open ? 'hidden' : '';
   }
-
-  function closeMenu() {
-    menuDrawer.classList.remove('open');
-    overlay.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  if (menuToggle) menuToggle.addEventListener('click', openMenu);
-  if (menuClose) menuClose.addEventListener('click', closeMenu);
-  if (overlay) overlay.addEventListener('click', closeMenu);
+  if (toggle) toggle.addEventListener('click', function () { setOpen(true); });
+  if (close) close.addEventListener('click', function () { setOpen(false); });
+  if (overlay) overlay.addEventListener('click', function () { setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
 });
 </script>
 
 {% schema %}
 {
   "name": "Header",
-  "settings": []
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu",
+      "info": "Leave the menu empty to use Shop / Artists / Studio."
+    },
+    {
+      "type": "url",
+      "id": "studio_url",
+      "label": "Studio link",
+      "default": "https://concept1984.com"
+    }
+  ]
 }
 {% endschema %}

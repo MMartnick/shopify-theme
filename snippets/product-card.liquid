@@ -1,44 +1,45 @@
 {%- comment -%}
-  Product Card Snippet
+  Product card: image, artist (vendor), type, title, price.
   Usage: {% render 'product-card', product: product %}
 {%- endcomment -%}
-
 <article class="product-card">
   <a href="{{ product.url }}" class="product-card-link">
     <div class="product-card-image">
       {%- if product.featured_image -%}
         <img
           src="{{ product.featured_image | image_url: width: 600 }}"
-          alt="{{ product.featured_image.alt | escape | default: product.title }}"
+          srcset="{{ product.featured_image | image_url: width: 400 }} 400w, {{ product.featured_image | image_url: width: 600 }} 600w, {{ product.featured_image | image_url: width: 900 }} 900w"
+          sizes="(max-width: 600px) 100vw, (max-width: 990px) 50vw, 25vw"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}"
           loading="lazy"
           width="600"
-          height="600"
+          height="{{ 600 | divided_by: product.featured_image.aspect_ratio | round }}"
         >
       {%- else -%}
-        <div class="product-card-placeholder">
-          <i class="fas fa-image"></i>
-        </div>
-      {%- endif -%}
-
-      {%- if product.compare_at_price > product.price -%}
-        <span class="product-badge sale">Sale</span>
+        <div class="product-card-placeholder">{% render 'icon', name: 'image' %}</div>
       {%- endif -%}
 
       {%- if product.available == false -%}
-        <span class="product-badge sold-out">Sold Out</span>
+        <span class="product-badge sold-out">Sold out</span>
+      {%- elsif product.compare_at_price > product.price -%}
+        <span class="product-badge sale">Sale</span>
       {%- endif -%}
     </div>
-
-    <div class="product-card-info">
-      <h3 class="product-card-title">{{ product.title }}</h3>
-      <div class="product-card-price">
-        {%- if product.compare_at_price > product.price -%}
-          <span class="price-compare">{{ product.compare_at_price | money }}</span>
-        {%- endif -%}
-        <span class="price-current{% if product.compare_at_price > product.price %} on-sale{% endif %}">
-          {{ product.price | money }}
-        </span>
-      </div>
-    </div>
   </a>
+
+  <div class="product-card-info">
+    <p class="product-card-meta">
+      {%- render 'artist-link', vendor: product.vendor, class: 'product-card-artist' -%}
+      {%- if product.type != blank -%}<span class="product-card-type">{{ product.type }}</span>{%- endif -%}
+    </p>
+    <h3 class="product-card-title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+    <div class="product-card-price">
+      {%- if product.compare_at_price > product.price -%}
+        <span class="price-compare">{{ product.compare_at_price | money }}</span>
+      {%- endif -%}
+      <span class="price-current{% if product.compare_at_price > product.price %} on-sale{% endif %}">
+        {%- if product.price_varies -%}From {% endif -%}{{ product.price | money }}
+      </span>
+    </div>
+  </div>
 </article>

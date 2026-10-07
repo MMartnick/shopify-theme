@@ -1,13 +1,25 @@
 {
   "sections": {
+    "intro": {
+      "type": "store-intro",
+      "settings": {}
+    },
     "featured": {
       "type": "featured-collection",
       "settings": {
-        "heading": "Shop",
+        "kicker": "Store",
+        "heading": "New work",
         "products_to_show": 8,
         "show_view_all": true
       }
+    },
+    "artists": {
+      "type": "artists",
+      "settings": {
+        "kicker": "Represented",
+        "heading": "Artists"
+      }
     }
   },
-  "order": ["featured"]
+  "order": ["intro", "featured", "artists"]
 }

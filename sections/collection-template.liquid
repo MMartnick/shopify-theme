@@ -1,60 +1,233 @@
+{%- comment -%}
+  Collection page with Shopify storefront filtering.
+  Filters come from the store's own data (Search & Discovery app):
+  Vendor (= artist) and Product type, plus any others enabled there.
+{%- endcomment -%}
+{%- liquid
+  assign is_artist = false
+  if collection.handle == 'vendors' or collection.products.first.vendor == collection.title
+    assign is_artist = true
+  endif
+-%}
+
+{%- paginate collection.products by section.settings.products_per_page -%}
 <div class="collection-page">
-  <header class="collection-header">
-    <h1 class="collection-title">{{ collection.title }}</h1>
-    {%- if collection.description != blank -%}
-      <div class="collection-description">{{ collection.description }}</div>
+  <header class="collection-header{% if collection.image %} collection-header--artist{% endif %}">
+    {%- if collection.image -%}
+      <img
+        src="{{ collection.image | image_url: width: 480 }}"
+        alt="{{ collection.image.alt | default: collection.title | escape }}"
+        class="collection-image" width="240" height="{{ 240 | divided_by: collection.image.aspect_ratio | round }}"
+      >
     {%- endif -%}
+    <div class="collection-heading">
+      {%- if is_artist -%}<p class="kicker">Artist</p>{%- endif -%}
+      <h1 class="collection-title">{{ collection.title }}</h1>
+      {%- if collection.description != blank -%}
+        <div class="collection-description">{{ collection.description }}</div>
+      {%- endif -%}
+    </div>
   </header>
 
-  {%- if collection.products.size > 0 -%}
-    <div class="product-grid">
-      {%- for product in collection.products -%}
-        {% render 'product-card', product: product %}
-      {%- endfor -%}
-    </div>
-
-    {%- if paginate.pages > 1 -%}
-      <nav class="pagination">
-        {%- if paginate.previous -%}
-          <a href="{{ paginate.previous.url }}" class="pagination-link prev">
-            <i class="fas fa-arrow-left"></i> Previous
-          </a>
-        {%- endif -%}
-
-        {%- for part in paginate.parts -%}
-          {%- if part.is_link -%}
-            <a href="{{ part.url }}" class="pagination-link">{{ part.title }}</a>
-          {%- else -%}
-            <span class="pagination-link current">{{ part.title }}</span>
+  <div class="collection-layout{% if collection.filters.size > 0 %} has-filters{% endif %}">
+    {%- if collection.filters.size > 0 -%}
+      <aside class="facets" aria-label="Filters">
+        <form class="facets-form" action="{{ collection.url }}" method="get" data-facets-form>
+          {%- if collection.handle == 'vendors' or collection.handle == 'types' -%}
+            <input type="hidden" name="q" value="{{ collection.title | escape }}">
           {%- endif -%}
-        {%- endfor -%}
+          <input type="hidden" name="sort_by" value="{{ collection.sort_by | default: collection.default_sort_by }}">
 
-        {%- if paginate.next -%}
-          <a href="{{ paginate.next.url }}" class="pagination-link next">
-            Next <i class="fas fa-arrow-right"></i>
-          </a>
-        {%- endif -%}
-      </nav>
+          {%- for filter in collection.filters -%}
+            {%- liquid
+              assign label = filter.label
+              case filter.param_name
+                when 'filter.p.vendor'
+                  assign label = 'Artist'
+                when 'filter.p.product_type'
+                  assign label = 'Type'
+                when 'filter.v.availability'
+                  assign label = 'Availability'
+              endcase
+              assign open = true
+              if filter.type == 'price_range'
+                assign open = false
+              endif
+            -%}
+            <details class="facet" {% if open or filter.active_values.size > 0 %}open{% endif %}>
+              <summary class="facet-title">
+                {{ label }}
+                {%- if filter.active_values.size > 0 -%}<span class="facet-count">{{ filter.active_values.size }}</span>{%- endif -%}
+              </summary>
+
+              {%- case filter.type -%}
+                {%- when 'list' or 'boolean' -%}
+                  <ul class="facet-list">
+                    {%- for value in filter.values -%}
+                      <li>
+                        <label class="facet-option{% if value.count == 0 and value.active == false %} is-disabled{% endif %}">
+                          <input
+                            type="checkbox"
+                            name="{{ value.param_name }}"
+                            value="{{ value.value }}"
+                            {% if value.active %}checked{% endif %}
+                            {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                          >
+                          <span class="facet-label">{{ value.label }}</span>
+                          <span class="facet-num">{{ value.count }}</span>
+                        </label>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+
+                {%- when 'price_range' -%}
+                  <div class="facet-price">
+                    <label>
+                      <span class="visually-hidden">Minimum price</span>
+                      <input type="number" name="{{ filter.min_value.param_name }}"
+                        value="{% if filter.min_value.value %}{{ filter.min_value.value | money_without_currency | replace: ',', '' }}{% endif %}"
+                        placeholder="0" min="0" step="1" inputmode="decimal">
+                    </label>
+                    <span aria-hidden="true">–</span>
+                    <label>
+                      <span class="visually-hidden">Maximum price</span>
+                      <input type="number" name="{{ filter.max_value.param_name }}"
+                        value="{% if filter.max_value.value %}{{ filter.max_value.value | money_without_currency | replace: ',', '' }}{% endif %}"
+                        placeholder="{{ filter.range_max | money_without_currency | replace: ',', '' }}" min="0" step="1" inputmode="decimal">
+                    </label>
+                  </div>
+              {%- endcase -%}
+            </details>
+          {%- endfor -%}
+
+          <noscript><button type="submit" class="btn btn-primary facets-apply">Apply</button></noscript>
+        </form>
+      </aside>
     {%- endif -%}
-  {%- else -%}
-    <div class="collection-empty">
-      <p>No products found in this collection.</p>
-      <a href="/collections/all" class="btn btn-primary">View All Products</a>
+
+    <div class="collection-results">
+      <div class="collection-toolbar">
+        <p class="results-count">{{ collection.products_count }} {{ collection.products_count | pluralize: 'product', 'products' }}</p>
+        <label class="sort">
+          <span>Sort</span>
+          <select name="sort_by" data-sort-select>
+            {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
+            {%- for option in collection.sort_options -%}
+              <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>{{ option.name }}</option>
+            {%- endfor -%}
+          </select>
+        </label>
+      </div>
+
+      {%- comment -%} Active filter chips {%- endcomment -%}
+      {%- liquid
+        assign active_count = 0
+        for filter in collection.filters
+          assign active_count = active_count | plus: filter.active_values.size
+          if filter.type == 'price_range' and filter.min_value.value != nil or filter.type == 'price_range' and filter.max_value.value != nil
+            assign active_count = active_count | plus: 1
+          endif
+        endfor
+      -%}
+      {%- if active_count > 0 -%}
+        <div class="active-filters">
+          {%- for filter in collection.filters -%}
+            {%- for value in filter.active_values -%}
+              <a href="{{ value.url_to_remove }}" class="filter-chip">
+                {{ value.label }} {% render 'icon', name: 'close' %}<span class="visually-hidden">Remove filter</span>
+              </a>
+            {%- endfor -%}
+            {%- if filter.type == 'price_range' -%}
+              {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
+                <a href="{{ filter.url_to_remove }}" class="filter-chip">
+                  {{ filter.min_value.value | default: 0 | money }}–{{ filter.max_value.value | default: filter.range_max | money }}
+                  {% render 'icon', name: 'close' %}<span class="visually-hidden">Remove filter</span>
+                </a>
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          <a href="{{ collection.url }}{% if collection.handle == 'vendors' or collection.handle == 'types' %}?q={{ collection.title | url_encode }}{% endif %}" class="filter-clear">Clear all</a>
+        </div>
+      {%- endif -%}
+
+      {%- if collection.products.size > 0 -%}
+        <div class="product-grid">
+          {%- for product in collection.products -%}
+            {% render 'product-card', product: product %}
+          {%- endfor -%}
+        </div>
+
+        {%- if paginate.pages > 1 -%}
+          <nav class="pagination" aria-label="Pagination">
+            {%- if paginate.previous -%}
+              <a href="{{ paginate.previous.url }}" class="pagination-link prev">{% render 'icon', name: 'arrow-left' %} Previous</a>
+            {%- endif -%}
+            {%- for part in paginate.parts -%}
+              {%- if part.is_link -%}
+                <a href="{{ part.url }}" class="pagination-link">{{ part.title }}</a>
+              {%- else -%}
+                <span class="pagination-link{% if part.title == paginate.current_page %} current{% endif %}" {% if part.title == paginate.current_page %}aria-current="page"{% endif %}>{{ part.title }}</span>
+              {%- endif -%}
+            {%- endfor -%}
+            {%- if paginate.next -%}
+              <a href="{{ paginate.next.url }}" class="pagination-link next">Next {% render 'icon', name: 'arrow-right' %}</a>
+            {%- endif -%}
+          </nav>
+        {%- endif -%}
+      {%- else -%}
+        <div class="collection-empty">
+          {%- if active_count > 0 -%}
+            <p>No products match these filters.</p>
+            <a href="{{ collection.url }}" class="btn btn-secondary">Clear filters</a>
+          {%- else -%}
+            <p>No products in this collection yet.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="btn btn-primary">View all products</a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
     </div>
-  {%- endif -%}
+  </div>
 </div>
+{%- endpaginate -%}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var form = document.querySelector('[data-facets-form]');
+  var sort = document.querySelector('[data-sort-select]');
+
+  function go() {
+    var params = new URLSearchParams(form ? new FormData(form) : undefined);
+    if (sort) params.set('sort_by', sort.value);
+    // drop empty values (e.g. a blank price field)
+    Array.from(params.keys()).forEach(function (k) { if (!params.getAll(k).some(Boolean)) params.delete(k); });
+    window.location.search = params.toString();
+  }
+
+  if (form) {
+    form.addEventListener('change', function (e) {
+      if (e.target.type === 'number') return;   // price fields submit on blur / Enter
+      go();
+    });
+    form.addEventListener('submit', function (e) { e.preventDefault(); go(); });
+    form.querySelectorAll('input[type="number"]').forEach(function (input) {
+      input.addEventListener('change', go);
+    });
+  }
+  if (sort) sort.addEventListener('change', go);
+});
+</script>
 
 {% schema %}
 {
-  "name": "Collection Grid",
+  "name": "Collection grid",
   "settings": [
     {
       "type": "range",
       "id": "products_per_page",
       "min": 8,
-      "max": 24,
+      "max": 48,
       "step": 4,
-      "default": 12,
+      "default": 24,
       "label": "Products per page"
     }
   ]

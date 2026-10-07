@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#111111">
+  <meta name="theme-color" content="#FAFAF7">
 
   <title>
     {%- if page_title -%}
-      {{ page_title }} – {{ shop.name }}
+      {{ page_title }}{% if current_tags %} – {{ current_tags | join: ', ' }}{% endif %}{% if current_page != 1 %} – Page {{ current_page }}{% endif %}{% unless page_title contains shop.name %} – {{ shop.name }}{% endunless %}
     {%- else -%}
       {{ shop.name }}
     {%- endif -%}
@@ -16,31 +16,31 @@
   {%- if page_description -%}
     <meta name="description" content="{{ page_description | escape }}">
   {%- endif -%}
+  <link rel="canonical" href="{{ canonical_url }}">
 
-  <!-- Preconnect for performance -->
+  {% render 'meta-tags' %}
+
   <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {%- comment -%} Same typefaces as concept1984.com {%- endcomment -%}
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous">
-
-  <!-- Theme CSS -->
   {{ 'base.css' | asset_url | stylesheet_tag }}
-
-  <!-- Shopify required -->
-  {{ content_for_header }}
 
   {%- if settings.favicon != blank -%}
     <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+  {%- else -%}
+    <link rel="icon" type="image/svg+xml" href="{{ 'concept1984-mark.svg' | asset_url }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ 'favicon-32.png' | asset_url }}">
   {%- endif -%}
+  <link rel="apple-touch-icon" href="{{ 'apple-touch-icon.png' | asset_url }}">
+
+  {{ content_for_header }}
 </head>
 
 <body class="template-{{ template.name }}">
-  <a href="#main-content" class="skip-link visually-hidden">Skip to content</a>
+  <a href="#main-content" class="skip-link">Skip to content</a>
 
   {% section 'header' %}
 
@@ -50,11 +50,9 @@
 
   {% section 'footer' %}
 
-  <!-- Cart drawer -->
   {% section 'cart-drawer' %}
 
   <script>
-    // Basic cart functionality
     window.theme = {
       moneyFormat: {{ shop.money_format | json }},
       cartCount: {{ cart.item_count }}
